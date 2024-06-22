@@ -1,0 +1,3 @@
+# SubtractNet
+
+This neural network has two convolutional blocks, each consisting of three convolutional layers with batch normalization and dropout, followed by max pooling. The absolute difference (subtraction) of the outputs from these blocks will be passed to subsequent convolutional blocks in three sets. Finally, the output will be processed through fully connected layers before producing predictions across n_classes output nodes.
