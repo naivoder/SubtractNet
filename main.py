@@ -27,21 +27,23 @@ class ConvBlock(nn.Module):
         return x
 
 class SubtractNet(nn.Module):
-    def __init__(self, in_channels, num_classes):
+    def __init__(self, input_shape, num_classes):
         super(SubtractNet, self).__init__()
-        self.block1a = ConvBlock(in_channels, 32)
-        self.block1b = ConvBlock(in_channels, 32)
+        self.input_shape = input_shape 
+
+        self.block1a = ConvBlock(self.input_shape[0], 32)
+        self.block1b = ConvBlock(self.input_shape[0], 32)
 
         self.block2a = ConvBlock(32, 64)
         self.block2b = ConvBlock(32, 64)
 
-        self.block4a = ConvBlock(64, 128)
-        self.block4b = ConvBlock(64, 128)
+        self.block3a = ConvBlock(64, 128)
+        self.block3b = ConvBlock(64, 128)
 
-        self.block5a = ConvBlock(128, 256)
-        self.block5b = ConvBlock(128, 256)
+        self.block4a = ConvBlock(128, 256)
+        self.block4b = ConvBlock(128, 256)
         
-        self.fc1 = nn.Linear(256 * 4 * 4, 512)
+        self.fc1 = nn.Linear(256 * self.input_shape[1] // 16 * self.input_shape[2] // 16, 512)
         self.output = nn.Linear(512, num_classes)
         
     def forward(self, x):
@@ -61,20 +63,14 @@ class SubtractNet(nn.Module):
         x2 = self.block4b(x)
         x = torch.abs(x1 - x2)
 
-        x1 = self.block5a(x)
-        x2 = self.block5b(x)
-        x = torch.abs(x1 - x2)
-
         x = x.view(x.size(0), -1)
         x = F.relu(self.fc1(x))
         
         return self.output(x)
     
 if __name__=="__main__":
-    model = SubtractNet(in_channels=3, num_classes=10)
+    x = torch.randn(1, 3, 128, 128)
+    model = SubtractNet(input_shape=x[0].shape, num_classes=10)
     
-    x1 = torch.randn(1, 3, 128, 128)
-    x2 = torch.randn(1, 3, 128, 128)
-    
-    output = model(x1, x2)
+    output = model(x)
     print("Output shape:", output.shape)
